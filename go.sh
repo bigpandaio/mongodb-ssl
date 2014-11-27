@@ -73,6 +73,9 @@ echo "${blue}>${reset} Checking out the selected release"
 sleep 2
 git checkout r$VERSION
 
+echo "${blue}>${reset} Patching CCFLAGS for GCC 4.8 support"
+sed -i '/platform *= *"linux"/ a env.Append ( CCFLAGS=["-Wno-unused-local-typedefs"] )' SConstruct
+
 echo "${blue}>${reset} Compilation ahead, this may take a while, go grab a book or something!"
 sleep 3
 scons --64 --ssl --release --no-glibc-check -j $PARALLEL --prefix=$TEMP install
@@ -86,8 +89,8 @@ cd $BASE
 mkdir -p $PKG_NAME/$PKG_NAME-$VERSION/{compiled,conf,man,upstart}
 mv $TEMP/bin/* $PKG_NAME/$PKG_NAME-$VERSION/compiled/.
 cp source/debian/*.1 $PKG_NAME/$PKG_NAME-$VERSION/man/.
-cp source/debian/mongod.conf $PKG_NAME/$PKG_NAME-$VERSION/conf/.
-cp source/debian/mongod.upstart $PKG_NAME/$PKG_NAME-$VERSION/upstart/mongod.conf
+cp source/debian/mongodb.conf $PKG_NAME/$PKG_NAME-$VERSION/conf/.
+cp source/debian/mongodb.upstart $PKG_NAME/$PKG_NAME-$VERSION/upstart/mongodb.conf
 
 # Create the basic package layout
 export DEBFULLNAME=$REALNAME
@@ -114,11 +117,11 @@ if [ "$MODCTRL" == 'yes' ]; then
 fi
 
 # GPG key
-echo "${blue}>${reset} Let's create a brand new GPG key to sign the package."
-echo "${red}!!${reset} Use the same name and email that was used on the package itself!"
-sleep 2
-sudo rngd -b -r /dev/urandom
-gpg --gen-key --no-use-agent
+#echo "${blue}>${reset} Let's create a brand new GPG key to sign the package."
+#echo "${red}!!${reset} Use the same name and email that was used on the package itself!"
+#sleep 2
+#sudo rngd -b -r /dev/urandom
+#gpg --gen-key --no-use-agent
 
 # Build the actual package
 debuild -b
